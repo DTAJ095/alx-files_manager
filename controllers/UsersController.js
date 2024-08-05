@@ -17,15 +17,19 @@ class UsersController {
         if (userEmail) return res.status(400).send({ error: 'Already exist' });
 
         const sha1Password = sha1(password);
-
+        let user; 
         try {
-            const user = await dbClient.userCollection.insertOne({ email, password: sha1Password });
-            if (!user) return res.status(400).send({ error: 'Missing data' });
-            return res.status(201).send({ id: user.insertedId, email });
+            user = await dbClient.userCollection.insertOne({ email, password: sha1Password });
         } catch (error) {
-            await userQueue.add({});
-            return res.status(500).send({ error: '' });
+            return res.status(500).send({ error: 'Error creating user' });
         }
+
+        const newUser = {
+            id: user.insertedId,
+            email,
+        };
+        await userQueue.add({ userId: newUser.id.toString() });
+        return res.status(201).send(newUser);
     }
 
     static async getMe(req, res) {
@@ -36,3 +40,5 @@ class UsersController {
         return res.status(200).send(user);
     }
 }
+
+export default UsersController;
