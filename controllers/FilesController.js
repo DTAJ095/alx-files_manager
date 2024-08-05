@@ -3,13 +3,23 @@ import dbClient from "../utils/db";
 import { ObjectId } from 'mongodb';
 import queue from 'bull';
 import { v4 as uuid4 } from 'uuid';
+import mime from 'mime-types';
 
 const fileQueue = new queue('fileQueue');
 const FOLDER_PATH = process.env.FOLDER_PATH || '/tmp/files_manager';
 const VALID_TYPES = ['folder', 'file', 'image', 'video'];
 
 
+/**
+ * Files controller
+ */
 class FilesController {
+    /**
+     * Create a new file
+     * @param {string} req 
+     * @param {string} res 
+     * @returns 
+     */
     static async postUpload(req, res) {
         const { userId } = await userUtils.getUserIdAndKey(req);
         if (!userId) return res.status(401).send({ error: 'Unauthorized' });
@@ -65,6 +75,10 @@ class FilesController {
 
     }
 
+    /**
+     * Get a file
+     * @returns file
+     */
     static async getShow(req, res) {
         const { userId } = await userUtils.getUserIdAndKey(req);
         if (!userId) return res.status(401).send({ error: 'Unauthorized' });
@@ -83,6 +97,10 @@ class FilesController {
         });
     }
 
+    /**
+     * Get all files
+     * @returns 
+     */
     static async getIndex(req, res) {
         const { userId } = await userUtils.getUserIdAndKey(req);
         if (!userId) return res.status(401).send({ error: 'Unauthorized' });
@@ -116,6 +134,62 @@ class FilesController {
             filesArray.push(fileItems);
         });
         return res.status(200).send(filesArray);
+    }
+
+    /**
+     * set file parameter isPublic to true
+     * @returns 
+     */
+    static async putPublish(req, res) {
+        const { userId } = await userUtils.getUserIdAndKey(req);
+        if (!userId) return res.status(401).send({ error: 'Unauthorized' });
+
+        const fileId = req.params.id;
+        const file = await dbClient.files.findOne({ _id: ObjectId(fileId) });
+        if (!file) return res.status(404).send({ error: 'Not found' });
+        if (file.userId.toString() !== userId) return res.status(404).send({ error: 'Not found' });
+
+        await dbClient.files.updateOne({ _id: ObjectId(fileId) }, { $set: { isPublic: true } });
+        return res.status(200).send({ id: file._id, userId: file.userId, name: file.name, type: file.type, isPublic: true, parentId: file.parentId });
+    }
+
+    /**
+     * set file parameter isPublic to false
+     */
+    static async putUnpublish(req, res) {
+        const { userId } = await userUtils.getUserIdAndKey(req);
+        if (!userId) return res.status(401).send({ error: 'Unauthorized' });
+
+        const fileId = req.params.id;
+        const file = await dbClient.files.findOne({ _id: ObjectId(fileId) });
+        if (!file) return res.status(404).send({ error: 'Not found' });
+        if (file.userId.toString() !== userId) return res.status(404).send({ error: 'Not found' });
+
+        await dbClient.files.updateOne({ _id: ObjectId(fileId) }, { $set: { isPublic: false } });
+        return res.status(200).send({ id: file._id, userId: file.userId, name: file.name, type: file.type, isPublic: false, parentId: file.parentId });
+    }
+
+    static async getFile(req, res) {
+        const size = req.query.size || null;
+
+        const { userId } = await userUtils.getUserIdAndKey(req);
+        const id = req.params.id || null;
+        const file = await dbClient.files.findOne({ _id: ObjectId(id) });
+        if (!file) return res.status(404).send({ error: 'Not found' });
+        if (file.isPublic === false && file.userId.toString() !== userId) return res.status(404).send({ error: 'Not found' });
+        if (file.type === 'folder') return res.status(400).send({ error: 'A folder doesn\'t have content' });
+        if (!file.localPath) return res.status(404).send({ error: 'Not found'});
+
+        const path = size === 0 ? file.localPath : `${file.localPath}_${size}`;
+
+        try {
+            const fileData = readFileSync(path);
+            const mimeType = mime.contentType(file.name);
+            res.setHeader('Content-Type', mimeType);
+            return res.status(200).send(fileData);
+        } catch (error) {
+            return res.status(404).send({ error: 'Not found' });
+        }
     }
 }
 
