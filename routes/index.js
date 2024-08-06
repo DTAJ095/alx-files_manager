@@ -33,8 +33,8 @@ function routeController(app) {
     UsersController.getMe(req, res);
   });
 
-  router.get('/files', (req, res) => {
-    FilesController.getConnect(req, res);
+  router.post('/files', (req, res) => {
+    FilesController.postUpload(req, res);
   });
 }
 
