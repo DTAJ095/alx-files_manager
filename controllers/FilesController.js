@@ -13,7 +13,7 @@ const queue = new Queue('fileQueue');
 class FilesController {
     static async postUpload(req, res) {
         const { userId } = await getIdAndKey(req);
-        const { user } = await dbClient.db.collection('users').findOne({ _id: ObjectId() });
+        const { user } = await dbClient.db.collection('users').findOne({ _id: ObjectId(userId) });
         if (!user) return res.status(401).send({ error: 'Unauthorized' });
 
         const fileParams = {
