@@ -19,3 +19,5 @@ class UsersController {
         res.status(201).send(user);
     }
 }
+
+export default UsersController;
