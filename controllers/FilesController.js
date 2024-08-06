@@ -49,3 +49,5 @@ class FilesController{
         return res.status(201).send(file);
     }
 }
+
+export default FilesController;
