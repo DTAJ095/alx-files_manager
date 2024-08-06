@@ -26,27 +26,26 @@ class FilesController{
             type,
             parentId,
             isPublic: isPublic || false,
-            data
         };
 
         if (type === 'folder') {
             await dbClient.db.collection('files').insertOne(file);
             return res.status(201).send(file);
+        } else {
+            const PATH = process.env.FOLDER_PATH || '/tmp/files_manager';
+            const fs = require('fs');
+            
+            if (!fs.existsSync(PATH)) fs.mkdirSync(PATH, { recursive: true });
+            const filePath = `${PATH}/${uuidv4()}`;
+            const buff = Buffer.from(data, 'base64');
+            
+            await fs.writeFile(filePath, buff, (err) => {
+                if (err) return res.status(500).send({ error: 'Cannot write data' });
+            });
+            
+            await dbClient.db.collection('files').insertOne({ ...file, localPath: filePath });
+            return res.status(201).send(file);
         }
-
-        const PATH = process.env.FOLDER_PATH || '/tmp/files_manager';
-        const fs = require('fs');
-
-        if (!fs.existsSync(PATH)) fs.mkdirSync(PATH, { recursive: true });
-        const filePath = `${PATH}/${uuidv4()}`;
-        const buff = Buffer.from(data, 'base64');
-
-        await fs.writeFile(filePath, buff, (err) => {
-            if (err) return res.status(500).send({ error: 'Cannot write data' });
-        });
-
-        await dbClient.db.collection('files').insertOne({ ...file, localPath: filePath });
-        return res.status(201).send(file);
     }
 }
 
