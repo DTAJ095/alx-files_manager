@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import dbClient from '../utils/db';
 import { mkdir, readFileSync, writeFile } from 'fs';
 import Queue from 'bull';
+import { getIdAndKey } from '../utils/helpers';
 
 const FOLDER_PATH = process.env.FOLDER_PATH || '/tmp/files_manager';
 const VALID_TYPES = ['folder', 'file', 'image', 'video'];
@@ -11,8 +12,9 @@ const queue = new Queue('fileQueue');
 
 class FilesController {
     static async postUpload(req, res) {
-        const { userId } = await dbClient.db.collection('users').findOne({ _id: ObjectId(req.user.id) });
-        if (!userId) return res.status(401).send({ error: 'Unauthorized' });
+        const { userId } = await getIdAndKey(req);
+        const { user } = await dbClient.db.collection('users').findOne({ _id: ObjectId() });
+        if (!user) return res.status(401).send({ error: 'Unauthorized' });
 
         const fileParams = {
             userId,
@@ -72,7 +74,7 @@ class FilesController {
             type: fileData.type,
             isPublic: fileData.isPublic,
             parentId: fileData.parentId,
-            localPath: fileData.localPath
+            localPath
         });
     }
 }
