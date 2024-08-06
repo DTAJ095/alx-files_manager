@@ -3,6 +3,7 @@ import redisClient from "../utils/redis";
 import { v4 as uuidv4 } from 'uuid';
 import { ObjectId } from 'mongodb';
 
+
 class FilesController{
     static async postUpload(req, res){
         const token = req.header('X-Token');
@@ -21,7 +22,7 @@ class FilesController{
         }
 
         const file = {
-            userId: user._id,
+            userId: ObjectId(userId),
             name,
             type,
             parentId,
@@ -46,6 +47,12 @@ class FilesController{
             await dbClient.db.collection('files').insertOne({ ...file, localPath: filePath });
             return res.status(201).send(file);
         }
+    }
+
+    static async getShow(req, res) {
+        const token = req.header('X-Token');
+        const user = redisClient.get(`auth_${token}`);
+        if (!user) return res.status(401).send({ error: 'Unauthorized'});
     }
 }
 
