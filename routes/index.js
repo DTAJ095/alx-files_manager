@@ -19,6 +19,9 @@ function routeController(app) {
     router.post('/users', (req, res) => {
         UsersController.postNew(req, res);
     });
+
+    router.get('/connect', (req, res) => {
+    });
 };
 
 export default routeController;
