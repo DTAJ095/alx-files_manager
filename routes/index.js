@@ -1,6 +1,6 @@
 import express from 'express';
-import AppController from '../controllers/app.controller.js';
-import FilesController from '../controllers/files.controller.js';
+import AppController from '../controllers/AppController.js';
+import FilesController from '../controllers/FilesController.js';
 import UsersController from '../controllers/UsersController.js';
 import AuthController from '../controllers/AuthController.js';
 
