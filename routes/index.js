@@ -21,6 +21,11 @@ function routeController(app) {
     });
 
     router.get('/connect', (req, res) => {
+        AuthController.getConnect(req, res);
+    });
+
+    router.get('/disconnect', (req, res) => {
+        AuthController.getDisconnect(req, res);
     });
 };
 
