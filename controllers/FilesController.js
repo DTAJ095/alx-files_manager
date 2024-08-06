@@ -22,10 +22,11 @@ class FilesController{
         }
 
         const file = {
-            userId: ObjectId(userId),
+            id: file._id.toString(),
+            userId: req.user._id,
             name,
             type,
-            parentId,
+            parentId: parentId === 0 ? parentId : ObjectId(parentId),
             isPublic: isPublic || false,
         };
 
