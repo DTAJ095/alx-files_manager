@@ -16,7 +16,7 @@ class AppController {
     static async getStats(req, res) {
         const users = await dbClient.nbUsers();
         const files = await dbClient.nbFiles();
-        return res.status(200).send({ users, files });
+        res.status(200).send({ users, files });
     }
 }
 
