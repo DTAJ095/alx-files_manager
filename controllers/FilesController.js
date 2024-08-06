@@ -2,8 +2,12 @@ import { ObjectId } from 'mongodb';
 import { v4 as uuidv4 } from 'uuid';
 import { mkdir, readFileSync, writeFile } from 'fs';
 import Queue from 'bull';
+<<<<<<< HEAD
 import dbClient from '../utils/db';
 import { getIdAndKey } from '../utils/users';
+=======
+import { getIdAndKey } from '../utils/user';
+>>>>>>> 4a3aa4d (updated)
 
 const FOLDER_PATH = process.env.FOLDER_PATH || '/tmp/files_manager';
 const VALID_TYPES = ['folder', 'file', 'image', 'video'];
