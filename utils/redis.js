@@ -7,8 +7,13 @@ class RedisClient {
   constructor() {
     this.redisClient = redis.createClient();
     this.getAsync = promisify(this.redisClient.get).bind(this.redisClient);
+
     this.redisClient.on('error', (err) => {
       console.log(`Redis client not connected to the server: ${err.message}`);
+    });
+
+    this.redisClient.on('connect', () => {
+      console.log('Redis client connected to the server');
     });
   }
 
