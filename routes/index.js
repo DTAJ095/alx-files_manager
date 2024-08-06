@@ -2,6 +2,7 @@ import express from 'express';
 import AppController from '../controllers/AppController';
 import UsersController from '../controllers/UsersController';
 import AuthController from '../controllers/AuthController';
+import FilesController from '../controllers/FilesController';
 
 const router = express.Router();
 
@@ -26,6 +27,14 @@ function routeController(app) {
 
   router.get('/disconnect', (req, res) => {
     AuthController.getDisconnect(req, res);
+  });
+
+  router.get('/users/me', (req, res) => {
+    UsersController.getMe(req, res);
+  });
+
+  router.get('/files', (req, res) => {
+    FilesController.getConnect(req, res);
   });
 }
 
