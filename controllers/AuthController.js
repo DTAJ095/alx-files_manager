@@ -16,6 +16,8 @@ class AuthController {
         const user = await dbClient.db.collection('users').findOne({ email: credentials.email, password: sha1(credentials.password) });
         if (!user) return res.status(401).send({ error: 'Unauthorized' });
 
+        if (credentials.password !== user.password) return res.status(401).send({ error: 'Unauthorized' });
+
         const token = uuidv4();
         const key = `auth_${token}`;
         const value = user._id.toString();
