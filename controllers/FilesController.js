@@ -4,6 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import redisClient from '../utils/redis';
 import dbClient from '../utils/db';
+import mime from 'mime-types';
 
 class FilesController {
   static async postUpload(req, res) {
@@ -162,6 +163,35 @@ class FilesController {
         isPublic: false,
         parentId: file.parentId,
         });
+    }
+
+    static async getFile(req, res) {
+        try {
+            const token = req.header('X-Token');
+        const user = await redisClient.get(`auth_${token}`);
+        if (!user) return res.status(401).send({ error: 'Unauthorized' });
+    
+        const { id } = req.params.id || 0;
+        if (!ObjectId.isValid(id)) {
+        return res.status(400).send({ error: 'Invalid ID' });
+        }
+    
+        const file = await dbClient.db.collection('files').findOne({ _id: ObjectId(id), userId: ObjectId(user) });
+        if (!file) return res.status(404).send({ error: 'Not found' });
+        if (file.isPublic === false && !user) return res.status(404).send({ error: 'Not found' });
+    
+        if (file.type === 'folder') return res.status(400).send({ error: "A folder doesn't have content" });
+    
+        const localPath = file.localPath;
+        if (!fs.existsSync(localPath)) return res.status(404).send({ error: 'Not found' });
+
+        const mimeType = mime.getType(file.name);
+        data = fs.readFileSync(localPath);
+        res.setHeader('Content-Type', mimeType);
+        return res.status(200).send(data);
+        } catch (err) {
+            return res.status(500).send({ error: 'Server error' });
+        }
     }
 }
 
