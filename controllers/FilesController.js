@@ -54,7 +54,7 @@ class FilesController {
     }
 
     if (type === 'image') {
-        await fileQueue.add({ userId: file.userId, fileId: file.id });
+      await fileQueue.add({ userId: file.userId, fileId: file.id });
     }
 
     const PATH = process.env.FOLDER_PATH || '/tmp/files_manager';
