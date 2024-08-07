@@ -32,71 +32,71 @@ class FilesController {
       isPublic: isPublic || false,
     };
 
-    if (type === 'folder') {
-      try {
-        const newFile = await dbClient.db.collection('files').insertOne(file);
-        file.id = newFile.insertedId;
-      } catch (err) {
-        console.log(err);
-      }
-      return res.status(201).send({
-        id: file.id,
-        userId: file.userId,
-        name: file.name,
-        type: file.type,
-        isPublic: file.isPublic,
-        parentId: file.parentId,
-      });
-    }
-
-    const PATH = process.env.FOLDER_PATH || '/tmp/files_manager';
-    if (!fs.existsSync(PATH)) {
-      fs.mkdirSync(PATH, { recursive: true });
-    }
-
-    const fileUUID = uuidv4();
-    const localPath = path.join(PATH, fileUUID);
-    const buff = Buffer.from(data, 'base64');
-    try {
-      fs.writeFile(localPath, buff);
-    } catch (err) {
-      return res.status(500).send({ error: 'Cannot write in file' });
-    }
-    file.localPath = localPath;
-    const newFile = await dbClient.db.collection('files').insertOne(file, localPath);
-    return res.status(201).send({
-      id: newFile.insertedId,
-      userId: file.userId,
-      name: file.name,
-      type: file.type,
-      isPublic: file.isPublic,
-      parentId: file.parentId,
-    });
-
-    // if (type !== 'folder') {
-    //     const PATH = process.env.FOLDER_PATH || '/tmp/files_manager';
-    //     if (!fs.existsSync(PATH)) {
-    //         fs.mkdirSync(PATH, { recursive: true });
-    //     }
-
-    //     const fileName = uuidv4();
-    //     const localPath = path.join(PATH, fileName);
-    //     const buff = Buffer.from(data, 'base64');
-
-    //     try {
-    //         fs.writeFile(localPath, buff);
-    //     } catch (err) {
-    //         return res.status(500).send({ error: 'Cannot write in file' });
-    //     }
-    //     file.localPath = localPath;
-    // }
-
-    // try {
+    // if (type === 'folder') {
+    //   try {
     //     const newFile = await dbClient.db.collection('files').insertOne(file);
     //     file.id = newFile.insertedId;
-    // } catch (err) {
+    //   } catch (err) {
     //     console.log(err);
+    //   }
+    //   return res.status(201).send({
+    //     id: file.id,
+    //     userId: file.userId,
+    //     name: file.name,
+    //     type: file.type,
+    //     isPublic: file.isPublic,
+    //     parentId: file.parentId,
+    //   });
     // }
+
+    // const PATH = process.env.FOLDER_PATH || '/tmp/files_manager';
+    // if (!fs.existsSync(PATH)) {
+    //   fs.mkdirSync(PATH, { recursive: true });
+    // }
+
+    // const fileUUID = uuidv4();
+    // const localPath = path.join(PATH, fileUUID);
+    // const buff = Buffer.from(data, 'base64');
+    // try {
+    //   fs.writeFile(localPath, buff);
+    // } catch (err) {
+    //   return res.status(500).send({ error: 'Cannot write in file' });
+    // }
+    // file.localPath = localPath;
+    // const newFile = await dbClient.db.collection('files').insertOne(file, localPath);
+    // return res.status(201).send({
+    //   id: newFile.insertedId,
+    //   userId: file.userId,
+    //   name: file.name,
+    //   type: file.type,
+    //   isPublic: file.isPublic,
+    //   parentId: file.parentId,
+    // });
+
+     if (type !== 'folder') {
+        const PATH = process.env.FOLDER_PATH || '/tmp/files_manager';
+        if (!fs.existsSync(PATH)) {
+            fs.mkdirSync(PATH, { recursive: true });
+        }
+
+        const fileName = uuidv4();
+        const localPath = path.join(PATH, fileName);
+        const buff = Buffer.from(data, 'base64');
+
+        try {
+            fs.writeFile(localPath, buff);
+        } catch (err) {
+            return res.status(500).send({ error: 'Cannot write in file' });
+        }
+        file.localPath = localPath;
+    }
+
+    try {
+        const newFile = await dbClient.db.collection('files').insertOne(file);
+        file.id = newFile.insertedId;
+    } catch (err) {
+        console.log(err);
+    }
   }
 
   static async getShow(req, res) {
