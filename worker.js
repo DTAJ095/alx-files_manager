@@ -3,6 +3,7 @@ import imageThumbnail from 'image-thumbnail';
 import dbClient from './utils/db';
 
 const fileQueue = new Queue('fileQueue');
+const userQueue = new Queue('userQueue');
 
 fileQueue.process(async (job) => {
     const { userId, fileId } = job.data;
@@ -24,4 +25,16 @@ fileQueue.process(async (job) => {
 
         await fs.writeFile(thumbnailPath, thumbnail);
     });
+});
+
+userQueue.process(async (job) => {
+    const { userId } = job.data;
+
+    if (!userId) throw new Error('Missing userId');
+
+    const user = await dbClient.db.collection('users').findOne({ _id: userId });
+    if (!user) throw new Error('User not found');
+
+    const { email } = user;
+    console.log(`Welcome to the queue ${email}`);
 });
