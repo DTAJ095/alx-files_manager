@@ -2,6 +2,8 @@ import dbClient from "../utils/db";
 import redisClient from "../utils/redis";
 import { v4 as uuidv4 } from 'uuid';
 import { ObjectId } from 'mongodb';
+import fs from 'fs';
+import path from 'path';
 
 
 class FilesController{
@@ -29,37 +31,29 @@ class FilesController{
             isPublic: isPublic || false,
         };
 
-        if (type === 'folder') {
-            const newFolder = await dbClient.db.collection('files').insertOne(file);
-            return res.status(201).send({
-                id: ObjectId(newFolder),
-                userId: newFolder.userId,
-                name: newFolder.name,
-                type: newFolder.type,
-                parentId: newFolder.parentId,
-                isPublic: newFolder.isPublic
-            });
-        } else {
+        if (type !== 'folder') {
             const PATH = process.env.FOLDER_PATH || '/tmp/files_manager';
-            const fs = require('fs');
-            
-            if (!fs.existsSync(PATH)) fs.mkdirSync(PATH, { recursive: true });
-            const filePath = `${PATH}/${uuidv4()}`;
+            if (!fs.existsSync(PATH)) {
+                fs.mkdirSync(PATH, { recursive: true });
+            }
+
+            const fileName = uuidv4();
+            const localPath = path.join(PATH, fileName);
             const buff = Buffer.from(data, 'base64');
-            
-            await fs.writeFile(filePath, buff, (err) => {
-                if (err) return res.status(500).send({ error: 'Cannot write data' });
-            });
-            
-            const newFile = await dbClient.db.collection('files').insertOne({ ...file, localPath: filePath });
-            return res.status(201).send({
-                userId: newFile.userId,
-                name: newFile.name,
-                type: newFile.type,
-                isPublic: newFile.isPublic,
-                parentId: newFile.parentId,
-                localPath: newFile.localPath
-            });
+
+            try {
+                fs.writeFileSync(localPath, buff);
+            } catch (err) {
+                return res.status(500).send({ error: 'Cannot write in file' });
+            }
+            file.localPath = localPath;
+        }
+
+        try {
+            const newFile = await dbClient.db.collection('files').insertOne(file);
+            file.id = newFile.insertedId;
+        } catch (err) {
+            console.log(err);
         }
     }
 
@@ -67,6 +61,32 @@ class FilesController{
         const token = req.header('X-Token');
         const user = redisClient.get(`auth_${token}`);
         if (!user) return res.status(401).send({ error: 'Unauthorized'});
+
+        const { id } = req.params;
+        if (!ObjectId.isValid(id)) {
+            return res.status(400).send({ error: 'Invalid ID' });
+        }
+
+        const file = await dbClient.db.collection('files').findOne({ _id: ObjectId(id), userId: ObjectId(user)});
+        if (!file) return res.status(404).send({ error: 'Not found' });
+        return res.status(200).send(file);
+    }
+
+    static async getIndex(req, res) {
+        const token = req.header('X-Token');
+        const user = redisClient.get(`auth_${token}`);
+        if (!user) return res.status(401).send({ error: 'Unauthorized' });
+
+        const { parentId = '0', page = 0 } = req.query;
+        const pageSize = 20;
+        const next = page * pageSize;
+
+        const files = await dbClient.db.collection('files').aggregate([
+            { $match: { parentId: parentId === '0' ? 0 : ObjectId(parentId), userId: ObjectId(user) } },
+            { $skip: next },
+            { $limit: pageSize }
+        ]).toArray();
+        return res.status(200).send(files);
     }
 }
 
