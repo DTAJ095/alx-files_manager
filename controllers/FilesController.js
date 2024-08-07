@@ -127,33 +127,17 @@ class FilesController{
         const user = await redisClient.get(`auth_${token}`);
         if (!user) return res.status(401).send({ error: 'Unauthorized' });
 
-        const parentId = req.query.parentId || 0;
+        const { parentId = 0, page = 0 } = req.query;
+        const folder = await dbClient.db.collection('files').findOne({ _id: ObjectId(parentId), userId: ObjectId(user) });
+        if (!folder) return res.status(200).send([]);
+        const pageSize = 20;
+        const next = page * pageSize;
 
-        const folder = await dbClient.db.collection('files').find({ parentId: ObjectId(parentId), userId: ObjectId(user) }).toArray();
-        if (!folder || folder.type !== 'folder') return res.status(200).send({ folder: [] });
-
-        const page = req.query.page || 0;
-        const aggregate = { $and: [{ parentId}]};
-        const aggData = [
-            { $match: aggregate },
-            { $skip: page * 20 },
-            { $limit: 20 },
-        ];
-        if (parentId === 0) aggData = [{ $match: { parentId: 0 } }, { $skip: page * 20 }, { $limit: 20 }];
-        const filePages = await dbClient.db.collection('files').aggregate(aggData).toArray();
-        const files = [];
-
-        await filePages.array.forEach(file => {
-            const fileObj = {
-                id: file._id,
-                userId: file.userId,
-                name: file.name,
-                type: file.type,
-                isPublic: file.isPublic,
-                parentId: file.parentId,
-            };
-            files.push(fileObj);
-        });
+        const files = await dbClient.db.collection('files').aggregate([
+            { $match: { parentId: parentId === '0' ? 0 : ObjectId(parentId), userId: ObjectId(user) } },
+            { $skip: next },
+            { $limit: pageSize }
+        ]).toArray();
         return res.status(200).send(files);
     }
 }
