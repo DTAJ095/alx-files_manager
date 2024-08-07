@@ -178,9 +178,7 @@ class FilesController {
       if (!user) return res.status(401).send({ error: 'Unauthorized' });
 
       const { id } = req.params.id || 0;
-      if (!ObjectId.isValid(id)) {
-        return res.status(400).send({ error: 'Invalid ID' });
-      }
+      const size = req.query.size || 0;
 
       const file = await dbClient.db.collection('files').findOne({ _id: ObjectId(id), userId: ObjectId(user) });
       if (!file) return res.status(404).send({ error: 'Not found' });
@@ -191,10 +189,17 @@ class FilesController {
       const { localPath } = file;
       if (!fs.existsSync(localPath)) return res.status(404).send({ error: 'Not found' });
 
-      const mimeType = mime.getType(file.name);
-      const data = fs.readFileSync(localPath);
-      res.setHeader('Content-Type', mimeType);
-      return res.status(200).send(data);
+      const path = size === 0 ? localPath : `${localPath}_${size}`;
+
+      try {
+        const mimeType = mime.getType(file.name);
+        const data = fs.readFileSync(path);
+        res.setHeader('Content-Type', mimeType);
+        return res.status(200).send(data);
+      } catch (err) {
+        return res.status(500).send({ error: 'Not found' });
+      }
+
     } catch (err) {
       return res.status(500).send({ error: 'Server error' });
     }
