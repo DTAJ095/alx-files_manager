@@ -3,9 +3,9 @@ import { ObjectId } from 'mongodb';
 import fs from 'fs';
 import path from 'path';
 import mime from 'mime-types';
+import Queue from 'bull';
 import redisClient from '../utils/redis';
 import dbClient from '../utils/db';
-import Queue from 'bull';
 
 const fileQueue = new Queue('fileQueue');
 
@@ -54,7 +54,7 @@ class FilesController {
     }
 
     if (type === 'image') {
-        await fileQueue.add({ userId, fileId: file.id });
+        await fileQueue.add({ userId: file.userId, fileId: file.id });
     }
 
     const PATH = process.env.FOLDER_PATH || '/tmp/files_manager';
