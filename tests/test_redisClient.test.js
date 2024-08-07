@@ -4,37 +4,37 @@ import redisClient from '../utils/redis';
 
 chai.use(chaiHttp);
 
-describe('Testing Redis client', function() {
-  it('Testing isAlive() function', function() {
+describe('testing Redis client', () => {
+  it('testing isAlive() function', () => {
     expect(redisClient.isAlive()).to.equal(true);
   });
 
-  it('Testing get() function', async function() {
+  it('testing get() function', async () => {
     const value = await redisClient.get('myKey');
     expect(value).to.equal(null);
   });
 
-  it('Testing set() function', async function() {
+  it('testing set() function', async () => {
     const value = await redisClient.set('myKey', 'myValue', 5);
     expect(value).to.equal(undefined);
   });
 
-  it('Testing get() function', async function() {
+  it('testing get() function', async () => {
     const value = await redisClient.get('myKey');
     expect(value).to.equal('myValue');
   });
 
-  it('Testing del() function', async function() {
+  it('testing del() function', async () => {
     const value = await redisClient.del('myKey');
     expect(value).to.equal(undefined);
   });
-  
-  it('Returns null for a non-existing key', async function() {
+
+  it('returns null for a non-existing key', async () => {
     const value = await redisClient.get('nonExistingKey');
     expect(value).to.equal(null);
   });
-  
-  it('Returns key with null value after expiration', async function() {
+
+  it('returns key with null value after expiration', async () => {
     await redisClient.set('key', 'value', 1);
     await new Promise((resolve) => setTimeout(resolve, 1500));
     const value = await redisClient.get('key');
