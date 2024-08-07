@@ -42,7 +42,7 @@ class FilesController{
             const buff = Buffer.from(data, 'base64');
 
             try {
-                fs.writeFileSync(localPath, buff);
+                fs.writeFile(localPath, buff);
             } catch (err) {
                 return res.status(500).send({ error: 'Cannot write in file' });
             }
@@ -62,7 +62,7 @@ class FilesController{
         const user = redisClient.get(`auth_${token}`);
         if (!user) return res.status(401).send({ error: 'Unauthorized'});
 
-        const { id } = req.params;
+        const { id } = req.params.id;
         if (!ObjectId.isValid(id)) {
             return res.status(400).send({ error: 'Invalid ID' });
         }
