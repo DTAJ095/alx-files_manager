@@ -1,7 +1,7 @@
 import Queue from 'bull';
 import imageThumbnail from 'image-thumbnail';
-import dbClient from './utils/db';
 import fs from 'fs';
+import dbClient from './utils/db';
 
 const fileQueue = new Queue('fileQueue');
 const userQueue = new Queue('userQueue');
