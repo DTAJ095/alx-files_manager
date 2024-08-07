@@ -25,7 +25,7 @@ class FilesController {
     }
 
     const file = {
-      userId: user,
+      userId: user._id,
       name,
       type,
       parentId: parentId === 0 ? parentId : ObjectId(parentId),
