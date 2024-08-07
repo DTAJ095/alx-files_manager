@@ -31,30 +31,73 @@ class FilesController{
             isPublic: isPublic || false,
         };
 
-        if (type !== 'folder') {
-            const PATH = process.env.FOLDER_PATH || '/tmp/files_manager';
-            if (!fs.existsSync(PATH)) {
-                fs.mkdirSync(PATH, { recursive: true });
-            }
-
-            const fileName = uuidv4();
-            const localPath = path.join(PATH, fileName);
-            const buff = Buffer.from(data, 'base64');
-
+        if (type === 'folder') {
             try {
-                fs.writeFile(localPath, buff);
+                const newFile = await dbClient.db.collection('files').insertOne(file);
+                file.id = newFile.insertedId;
             } catch (err) {
-                return res.status(500).send({ error: 'Cannot write in file' });
+                console.log(err);
             }
-            file.localPath = localPath;
+            return res.status(201).send({
+                id: file.id,
+                userId: file.userId,
+                name: file.name,
+                type: file.type,
+                isPublic: file.isPublic,
+                parentId: file.parentId,
+            });
         }
 
-        try {
-            const newFile = await dbClient.db.collection('files').insertOne(file);
-            file.id = newFile.insertedId;
-        } catch (err) {
-            console.log(err);
+        const PATH = process.env.FOLDER_PATH || '/tmp/files_manager';
+        if (!fs.existsSync(PATH)) {
+            fs.mkdirSync(PATH, { recursive: true });
         }
+
+        const fileUUID = uuidv4();
+        const localPath = path.join(PATH, fileUUID);
+        const buff = Buffer.from(data, 'base64');
+        try {
+            fs.writeFile(localPath, buff);
+        } catch (err) {
+            return res.status(500).send({ error: 'Cannot write in file' });
+        }
+        file.localPath = localPath;
+        const newFile = await dbClient.db.collection('files').insertOne(file, localPath);
+        return res.status(201).send({
+            id: newFile.insertedId,
+            userId: file.userId,
+            name: file.name,
+            type: file.type,
+            isPublic: file.isPublic,
+            parentId: file.parentId,
+        });
+
+
+
+        // if (type !== 'folder') {
+        //     const PATH = process.env.FOLDER_PATH || '/tmp/files_manager';
+        //     if (!fs.existsSync(PATH)) {
+        //         fs.mkdirSync(PATH, { recursive: true });
+        //     }
+
+        //     const fileName = uuidv4();
+        //     const localPath = path.join(PATH, fileName);
+        //     const buff = Buffer.from(data, 'base64');
+
+        //     try {
+        //         fs.writeFile(localPath, buff);
+        //     } catch (err) {
+        //         return res.status(500).send({ error: 'Cannot write in file' });
+        //     }
+        //     file.localPath = localPath;
+        // }
+
+        // try {
+        //     const newFile = await dbClient.db.collection('files').insertOne(file);
+        //     file.id = newFile.insertedId;
+        // } catch (err) {
+        //     console.log(err);
+        // }
     }
 
     static async getShow(req, res) {
@@ -62,14 +105,21 @@ class FilesController{
         const user = await redisClient.get(`auth_${token}`);
         if (!user) return res.status(401).send({ error: 'Unauthorized'});
 
-        const { id } = req.params.id;
+        const { id } = req.params.id || 0;
         if (!ObjectId.isValid(id)) {
             return res.status(400).send({ error: 'Invalid ID' });
         }
 
         const file = await dbClient.db.collection('files').findOne({ _id: ObjectId(id), userId: ObjectId(user)});
         if (!file) return res.status(404).send({ error: 'Not found' });
-        return res.status(200).send(file);
+        return res.status(200).send({
+            id: file._id,
+            userId: file.userId,
+            name: file.name,
+            type: file.type,
+            isPublic: file.isPublic,
+            parentId: file.parentId,
+        });
     }
 
     static async getIndex(req, res) {
