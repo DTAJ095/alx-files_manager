@@ -30,9 +30,9 @@ class FilesController{
         };
 
         if (type === 'folder') {
-            newFolder = await dbClient.db.collection('files').insertOne(file);
+            const newFolder = await dbClient.db.collection('files').insertOne(file);
             return res.status(201).send({
-                id: newFolder._id.toString(),
+                id: ObjectId(newFolder),
                 userId: newFolder.userId,
                 name: newFolder.name,
                 type: newFolder.type,
@@ -51,7 +51,7 @@ class FilesController{
                 if (err) return res.status(500).send({ error: 'Cannot write data' });
             });
             
-            newFile = await dbClient.db.collection('files').insertOne({ ...file, localPath: filePath });
+            const newFile = await dbClient.db.collection('files').insertOne({ ...file, localPath: filePath });
             return res.status(201).send({
                 userId: newFile.userId,
                 name: newFile.name,
