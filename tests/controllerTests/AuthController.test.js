@@ -3,7 +3,7 @@ import chaiHttp from 'chai-http';
 import dbClient from '../../utils/db';
 
 
-chai.use(chaiHttp);
+use(chaiHttp);
 
 const mockUser = { email: 'asgdjahgsd@gmail.com', password: 'mypasss2365' };
 let token = '';

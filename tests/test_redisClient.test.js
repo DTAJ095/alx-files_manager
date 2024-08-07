@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import chaiHttp from 'chai-http';
 import redisClient from '../utils/redis';
 
-chai.use(chaiHttp);
+use(chaiHttp);
 
 describe('testing Redis client', () => {
   it('testing isAlive() function', () => {

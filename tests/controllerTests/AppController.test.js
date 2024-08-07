@@ -3,7 +3,7 @@ import chaiHttp from 'chai-http';
 import dbClient from '../../utils/db';
 import app from '../../server';
 
-chai.use(chaiHttp);
+use(chaiHttp);
 
 describe('AppController', function() {
   before(async function() {

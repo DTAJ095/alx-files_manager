@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import chaiHttp from 'chai-http';
 import dbClient from '../../utils/db';
 
-chai.use(chaiHttp);
+use(chaiHttp);
 
 describe('UserController', function() {
     before(async function() {
