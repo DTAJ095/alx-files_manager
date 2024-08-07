@@ -5,6 +5,9 @@ import path from 'path';
 import mime from 'mime-types';
 import redisClient from '../utils/redis';
 import dbClient from '../utils/db';
+import Queue from 'bull';
+
+const fileQueue = new Queue('fileQueue');
 
 class FilesController {
   static async postUpload(req, res) {
@@ -48,6 +51,10 @@ class FilesController {
         isPublic: file.isPublic,
         parentId: file.parentId,
       });
+    }
+
+    if (type === 'image') {
+        await fileQueue.add({ userId, fileId: file.id });
     }
 
     const PATH = process.env.FOLDER_PATH || '/tmp/files_manager';
