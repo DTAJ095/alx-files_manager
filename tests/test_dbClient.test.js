@@ -1,8 +1,9 @@
 import { expect } from 'chai';
+import { describe, it, Before, after } from 'mocha';
 import chaiHttp from 'chai-http';
 import dbClient from '../utils/db';
 
-chai.use(chaiHttp);
+use(chaiHttp);
 
 describe('testing MongoDB client', () => {
   Before(async () => {
