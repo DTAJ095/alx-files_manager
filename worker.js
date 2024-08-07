@@ -1,6 +1,7 @@
 import Queue from 'bull';
 import imageThumbnail from 'image-thumbnail';
 import dbClient from './utils/db';
+import fs from 'fs';
 
 const fileQueue = new Queue('fileQueue');
 const userQueue = new Queue('userQueue');
@@ -21,7 +22,7 @@ fileQueue.process(async (job) => {
     widths.forEach(async (width) => {
         options.width = width;
         const thumbnail = await imageThumbnail(localPath, options);
-        const thumbnailPath = `${localPath}_${width}.jpg`;
+        const thumbnailPath = `${localPath}_${width}`;
 
         await fs.writeFile(thumbnailPath, thumbnail);
     });
