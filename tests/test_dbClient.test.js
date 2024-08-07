@@ -1,12 +1,12 @@
-import { expect } from 'chai';
-import { describe, it, Before, after } from 'mocha';
+import { expect, use } from 'chai';
+import { describe, it, before, after } from 'mocha';
 import chaiHttp from 'chai-http';
 import dbClient from '../utils/db';
 
 use(chaiHttp);
 
 describe('testing MongoDB client', () => {
-  Before(async () => {
+  before(async () => {
     await dbClient.db.collection('users').deleteMany({});
     await dbClient.db.collection('files').deleteMany({});
   });
