@@ -173,6 +173,7 @@ class FilesController {
       const { id } = req.params.id || 0;
       if (!ObjectId.isValid(id)) {
         return res.status(400).send({ error: 'Invalid ID' });
+<<<<<<< HEAD
       }
 
       const file = await dbClient.db.collection('files').findOne({ _id: ObjectId(id), userId: ObjectId(user) });
@@ -190,6 +191,26 @@ class FilesController {
       return res.status(200).send(data);
     } catch (err) {
       return res.status(500).send({ error: 'Server error' });
+=======
+        }
+    
+        const file = await dbClient.db.collection('files').findOne({ _id: ObjectId(id), userId: ObjectId(user) });
+        if (!file) return res.status(404).send({ error: 'Not found' });
+        if (file.isPublic === false && !user) return res.status(404).send({ error: 'Not found' });
+    
+        if (file.type === 'folder') return res.status(400).send({ error: "A folder doesn't have content" });
+    
+        const localPath = file.localPath;
+        if (!fs.existsSync(localPath)) return res.status(404).send({ error: 'Not found' });
+
+        const mimeType = mime.getType(file.name);
+        const data = fs.readFileSync(localPath);
+        res.setHeader('Content-Type', mimeType);
+        return res.status(200).send(data);
+        } catch (err) {
+            return res.status(500).send({ error: 'Server error' });
+        }
+>>>>>>> 13e96f919c96621164501bc784d1fe04a8a12c71
     }
   }
 }
