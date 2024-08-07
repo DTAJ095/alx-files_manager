@@ -40,6 +40,10 @@ function routeController(app) {
   router.get('/files/:id', (req, res) => {
     FilesController.getShow(req, res);
   });
+
+  router.get('/files', (req, res) => {
+    FilesController.getIndex(req, res);
+  })
 }
 
 export default routeController;
