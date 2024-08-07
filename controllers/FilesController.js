@@ -22,7 +22,6 @@ class FilesController{
         }
 
         const file = {
-            id: file._id.toString(),
             userId: req.user._id,
             name,
             type,
@@ -31,8 +30,15 @@ class FilesController{
         };
 
         if (type === 'folder') {
-            await dbClient.db.collection('files').insertOne(file);
-            return res.status(201).send(file);
+            newFolder = await dbClient.db.collection('files').insertOne(file);
+            return res.status(201).send({
+                id: newFolder._id.toString(),
+                userId: newFolder.userId,
+                name: newFolder.name,
+                type: newFolder.type,
+                parentId: newFolder.parentId,
+                isPublic: newFolder.isPublic
+            });
         } else {
             const PATH = process.env.FOLDER_PATH || '/tmp/files_manager';
             const fs = require('fs');
@@ -41,12 +47,19 @@ class FilesController{
             const filePath = `${PATH}/${uuidv4()}`;
             const buff = Buffer.from(data, 'base64');
             
-            await fs.writeFile(filePath, buff, (err) => {
+            /*await fs.writeFile(filePath, buff, (err) => {
                 if (err) return res.status(500).send({ error: 'Cannot write data' });
-            });
+            });*/
             
-            await dbClient.db.collection('files').insertOne({ ...file, localPath: filePath });
-            return res.status(201).send(file);
+            newFile = await dbClient.db.collection('files').insertOne({ ...file, localPath: filePath });
+            return res.status(201).send({
+                userId: newFile.userId,
+                name: newFile.name,
+                type: newFile.type,
+                isPublic: newFile.isPublic,
+                parentId: newFile.parentId,
+                localPath: newFile.localPath
+            });
         }
     }
 
